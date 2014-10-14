@@ -204,6 +204,14 @@ func (scope *Scope) CallMethod(name string) {
 
 // AddToVars add value as sql's vars, gorm will escape them
 func (scope *Scope) AddToVars(value interface{}) string {
+	// Fix inserting zero timestamps
+	switch value.(type) {
+	case time.Time:
+		if value.(time.Time).IsZero() {
+			scope.SqlVars = append(scope.SqlVars, nil)
+			return scope.Dialect().BinVar(len(scope.SqlVars))
+		}
+	}
 	scope.SqlVars = append(scope.SqlVars, value)
 	return scope.Dialect().BinVar(len(scope.SqlVars))
 }
